@@ -44,14 +44,15 @@ options:
     app_key:
         description: ["Your DataDog app key."]
         required: true
-    dd_tags:
-        description: ["A list of tags to associate with your monitor when creating or updating. This can help you categorize and filter monitors."]
-        required: false
-        default: None
     state:
         description: ["The designated state of the monitor."]
         required: true
         choices: ['present', 'absent', 'muted', 'unmuted']
+    tags:
+        description: ["A list of tags to associate with your monitor when creating or updating. This can help you categorize and filter monitors."]
+        required: false
+        default: None
+        version_added: 2.2
     type:
         description:
             - "The type of the monitor."
@@ -157,7 +158,7 @@ def main():
             escalation_message=dict(required=False, default=None),
             notify_audit=dict(required=False, default=False, type='bool'),
             thresholds=dict(required=False, type='dict', default=None),
-            dd_tags=dict(required=False, type='list', default=None)
+            tags=dict(required=False, type='list', default=None)
         )
     )
 
@@ -197,8 +198,8 @@ def _post_monitor(module, options):
         kwargs = dict(type=module.params['type'], query=module.params['query'],
                       name=module.params['name'], message=_fix_template_vars(module.params['message']),
                       options=options)
-        if module.params['dd_tags'] is not None:
-            kwargs['tags'] = module.params['dd_tags']
+        if module.params['tags'] is not None:
+            kwargs['tags'] = module.params['tags']
         msg = api.Monitor.create(**kwargs)
         if 'errors' in msg:
             module.fail_json(msg=str(msg['errors']))
@@ -217,8 +218,8 @@ def _update_monitor(module, monitor, options):
         kwargs = dict(id=monitor['id'], query=module.params['query'],
                       name=module.params['name'], message=_fix_template_vars(module.params['message']),
                       options=options)
-        if module.params['dd_tags'] is not None:
-            kwargs['tags'] = module.params['dd_tags']
+        if module.params['tags'] is not None:
+            kwargs['tags'] = module.params['tags']
         msg = api.Monitor.update(**kwargs)
 
         if 'errors' in msg:
